@@ -4,17 +4,17 @@ FROM node:18
 # Définissez le répertoire de travail
 WORKDIR /app
 
-# Copiez les fichiers package.json et package-lock.json
+# Copiez le package.json et le package-lock.json
 COPY package*.json ./
 
 # Installez les dépendances
+RUN npm install
 
-
-# Copiez le reste des fichiers du projet
+# Copiez le reste des fichiers de l'application
 COPY . .
 
-# Exposez le port sur lequel l'application écoute
+# Exposez le port sur lequel l'application va tourner
 EXPOSE 3000
 
-# Commande pour démarrer l'application
+# Démarrez l'application
 CMD ["npm", "run", "dev"]
