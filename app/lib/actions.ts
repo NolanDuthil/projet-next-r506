@@ -6,27 +6,26 @@ import db from '@/app/lib/db';
 
 export type State = {
   errors?: {
-    customerId?: string[];
-    amount?: string[];
-    status?: string[];
+    email?: string[];
+    firstname?: string[];
+    lastname?: string[];
   };
   message?: string | null;
 };
 
-const validateFields = (fields: { customerId: any; amount: any; status: any }) => {
+const validateFields = (fields: { email: any; firstname: any; lastname: any }) => {
   const errors: State['errors'] = {};
 
-  if (!fields.customerId) {
-    errors.customerId = ['Please select a customer.'];
+  if (!fields.email) {
+    errors.email = ['Please enter an email.'];
   }
 
-  const amount = Number(fields.amount);
-  if (isNaN(amount) || amount <= 0) {
-    errors.amount = ['Please enter an amount greater than $0.'];
+  if (!fields.firstname) {
+    errors.firstname = ['Please enter a firstname.'];
   }
 
-  if (!['pending', 'paid'].includes(fields.status)) {
-    errors.status = ['Please select an invoice status.'];
+  if (!fields.lastname) {
+    errors.lastname = ['Please enter a lastname.'];
   }
 
   return errors;
@@ -47,9 +46,9 @@ export async function getIntervenants() {
 
 export async function createIntervenants(prevState: State, formData: FormData) {
   const fields = {
-    customerId: formData.get('customerId'),
-    amount: formData.get('amount'),
-    status: formData.get('status'),
+    email: formData.get('email'),
+    firstname: formData.get('firstname'),
+    lastname: formData.get('lastname'),
   };
 
   const errors = validateFields(fields);
@@ -57,31 +56,35 @@ export async function createIntervenants(prevState: State, formData: FormData) {
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      message: 'Missing Fields. Failed to Create Invoice.',
+      message: 'Missing Fields. Failed to Create Intervenant.',
     };
   }
 
-  const { customerId, amount, status } = fields;
-  const amountInCents = Number(amount) * 100;
-  const date = new Date().toISOString().split('T')[0];
+  const { email, firstname, lastname } = fields;
+
+  // Generate additional fields
+  const key = generateKey(); // Implement this function to generate a unique key
+  const creationdate = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+  const enddate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]; // One year from now
+  const availability = {}; // Default empty JSON object
 
   const client = await db.connect();
   try {
     await client.query(
-      'INSERT INTO invoices (customer_id, amount, status, date) VALUES ($1, $2, $3, $4)',
-      [customerId, amountInCents, status, date]
+      'INSERT INTO intervenants (email, firstname, lastname, key, creationdate, enddate, availability) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [email, firstname, lastname, key, creationdate, enddate, availability]
     );
   } catch (err) {
-    console.error('Database Error: Failed to Create Invoice.', err);
+    console.error('Database Error: Failed to Create Intervenant.', err);
     return {
-      message: 'Database Error: Failed to Create Invoice.',
+      message: 'Database Error: Failed to Create Intervenant.',
     };
   } finally {
     client.release();
   }
 
-  revalidatePath('/dashboard/invoices');
-  redirect('/dashboard/invoices');
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
 }
 
 export async function updateIntervenants(
@@ -90,9 +93,9 @@ export async function updateIntervenants(
   formData: FormData,
 ) {
   const fields = {
-    customerId: formData.get('customerId'),
-    amount: formData.get('amount'),
-    status: formData.get('status'),
+    email: formData.get('email'),
+    firstname: formData.get('firstname'),
+    lastname: formData.get('lastname'),
   };
 
   const errors = validateFields(fields);
@@ -100,40 +103,44 @@ export async function updateIntervenants(
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      message: 'Missing Fields. Failed to Update Invoice.',
+      message: 'Missing Fields. Failed to Update Intervenant.',
     };
   }
 
-  const { customerId, amount, status } = fields;
-  const amountInCents = Number(amount) * 100;
+  const { email, firstname, lastname } = fields;
 
   const client = await db.connect();
   try {
     await client.query(
-      'UPDATE invoices SET customer_id = $1, amount = $2, status = $3 WHERE id = $4',
-      [customerId, amountInCents, status, id]
+      'UPDATE intervenants SET email = $1, firstname = $2, lastname = $3 WHERE id = $4',
+      [email, firstname, lastname, id]
     );
   } catch (err) {
-    console.error('Database Error: Failed to Update Invoice.', err);
-    return { message: 'Database Error: Failed to Update Invoice.' };
+    console.error('Database Error: Failed to Update Intervenant.', err);
+    return { message: 'Database Error: Failed to Update Intervenant.' };
   } finally {
     client.release();
   }
 
-  revalidatePath('/dashboard/invoices');
-  redirect('/dashboard/invoices');
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
 }
 
 export async function deleteIntervenants(id: string) {
   const client = await db.connect();
   try {
-    await client.query('DELETE FROM invoices WHERE id = $1', [id]);
-    revalidatePath('/dashboard/invoices');
-    return { message: 'Deleted Invoice.' };
+    await client.query('DELETE FROM intervenants WHERE id = $1', [id]);
+    revalidatePath('/dashboard/');
+    return { message: 'Deleted Intervenant.' };
   } catch (err) {
-    console.error('Database Error: Failed to Delete Invoice.', err);
-    return { message: 'Database Error: Failed to Delete Invoice.' };
+    console.error('Database Error: Failed to Delete Intervenant.', err);
+    return { message: 'Database Error: Failed to Delete Intervenant.' };
   } finally {
     client.release();
   }
+}
+
+// Example function to generate a unique key
+function generateKey() {
+  return Math.random().toString(36).substr(2, 9);
 }

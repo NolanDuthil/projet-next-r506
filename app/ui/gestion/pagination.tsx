@@ -6,19 +6,15 @@ import { generatePagination } from '@/app/lib/utils';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
-  const query = searchParams.get('query') || '';
-
-  const createPageURL = (pageNumber: number | string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', pageNumber.toString());
-    if (query) {
-      params.set('query', query);
-    }
-    return `${pathname}?${params.toString()}`;
-  };
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentPage = Number(searchParams.get('page')) || 1;
+  
+    const createPageURL = (pageNumber: number | string) => {
+      const params = new URLSearchParams(searchParams);
+      params.set('page', pageNumber.toString());
+      return `${pathname}?${params.toString()}`;
+    };
 
   const allPages = generatePagination(currentPage, totalPages);
 

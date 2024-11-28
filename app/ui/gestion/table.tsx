@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { formatDateToLocal } from '@/app/lib/utils';
 import { UpdateIntervenants, DeleteIntervenants } from '@/app/ui/gestion/buttons';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@/app/ui/icons';
 
 export default function Table({ query, currentPage }: { query: string, currentPage: number }) {
     const [intervenants, setIntervenants] = useState([]);
+    const today = new Date();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -36,13 +38,17 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                         <p>{intervenant.firstname} {intervenant.lastname}</p>
                                         <p className="text-sm text-gray-500">{intervenant.email}</p>
                                     </div>
+                                    {today < new Date(intervenant.enddate) ? <CheckCircleIcon className="h-6 w-6 text-green-500" /> : <ExclamationCircleIcon className="h-6 w-6 text-red-500" />}
                                 </div>
                                 <div className="flex w-full items-center justify-between pt-4">
                                     <div>
                                         <p>{intervenant.key}</p>
                                         <p>{formatDateToLocal(intervenant.creationdate)}</p>
                                         <p>{formatDateToLocal(intervenant.enddate)}</p>
-                                        <p>{JSON.stringify(intervenant.availability)}</p>
+                                    </div>
+                                    <div className='flex gap-2'>
+                                        <UpdateIntervenants id={intervenant.id} />
+                                        <DeleteIntervenants id={intervenant.id} />
                                     </div>
                                 </div>
                             </div>
@@ -51,6 +57,9 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                     <table className="hidden min-w-full text-gray-900 md:table">
                         <thead className="rounded-lg text-left text-sm font-normal">
                             <tr>
+                                <th scope="col" className="px-3 py-5 font-medium">
+                                    
+                                </th>
                                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                                     Firstname
                                 </th>
@@ -69,9 +78,6 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                 <th scope="col" className="px-3 py-5 font-medium">
                                     End Date
                                 </th>
-                                <th scope="col" className="px-3 py-5 font-medium">
-                                    Availability
-                                </th>
                                 <th scope="col" className="relative py-3 pl-6 pr-3">
                                     <span className="sr-only">Edit</span>
                                 </th>
@@ -83,6 +89,9 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                     key={intervenant.id}
                                     className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
                                 >
+                                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                                        {today < new Date(intervenant.enddate) ? <CheckCircleIcon className="h-6 w-6 text-green-500" /> : <ExclamationCircleIcon className="h-6 w-6 text-red-500" />}
+                                    </td>
                                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                                         {intervenant.firstname}
                                     </td>
@@ -100,9 +109,6 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-3">
                                         {formatDateToLocal(intervenant.enddate)}
-                                    </td>
-                                    <td className="whitespace-nowrap px-3 py-3">
-                                        {JSON.stringify(intervenant.availability)}
                                     </td>
                                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                                         <div className="flex justify-end gap-3">
