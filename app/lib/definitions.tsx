@@ -8,3 +8,11 @@ export type Intervenants = {
     enddate: string;
     availability: Record<string, any>;
 };
+
+export type Users= {
+    id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    password: string;
+}
