@@ -9,11 +9,12 @@ export type State = {
     email?: string[];
     firstname?: string[];
     lastname?: string[];
+    enddate?: string[];
   };
   message?: string | null;
 };
 
-const validateFields = (fields: { email: any; firstname: any; lastname: any }) => {
+const validateFields = (fields: { email: any; firstname: any; lastname: any; enddate: any }) => {
   const errors: State['errors'] = {};
 
   if (!fields.email) {
@@ -26,6 +27,10 @@ const validateFields = (fields: { email: any; firstname: any; lastname: any }) =
 
   if (!fields.lastname) {
     errors.lastname = ['Please enter a lastname.'];
+  }
+
+  if (!fields.enddate) {
+    errors.enddate = ['Please enter an end date.'];
   }
 
   return errors;
@@ -65,7 +70,7 @@ export async function createIntervenants(prevState: State, formData: FormData) {
   // Generate additional fields
   const key = generateKey(); // Implement this function to generate a unique key
   const creationdate = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
-  const enddate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]; // One year from now
+  const enddate = new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString().split('T')[0]; // Two months from now
   const availability = {}; // Default empty JSON object
 
   const client = await db.connect();
@@ -92,19 +97,19 @@ export async function createIntervenants(prevState: State, formData: FormData) {
     client.release();
   }
 
-  revalidatePath('/dashboard/intervenants');
-  redirect('/dashboard/intervenants');
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
 }
 
 export async function updateIntervenants(
-  id: string,
-  prevState: State,
   formData: FormData,
+  prevState: State,
 ) {
   const fields = {
     email: formData.get('email'),
     firstname: formData.get('firstname'),
     lastname: formData.get('lastname'),
+    enddate: formData.get('enddate'),
   };
 
   const errors = validateFields(fields);
@@ -116,13 +121,13 @@ export async function updateIntervenants(
     };
   }
 
-  const { email, firstname, lastname } = fields;
+  const { email, firstname, lastname, enddate } = fields;
 
   const client = await db.connect();
   try {
     await client.query(
-      'UPDATE intervenants SET email = $1, firstname = $2, lastname = $3 WHERE id = $4',
-      [email, firstname, lastname, id]
+      'UPDATE intervenants SET email = $1, firstname = $2, lastname = $3, enddate = $4 WHERE id = $5',
+      [email, firstname, lastname, enddate, formData.get('id')]
     );
   } catch (err) {
     console.error('Database Error: Failed to Update Intervenant.', err);
@@ -131,15 +136,15 @@ export async function updateIntervenants(
     client.release();
   }
 
-  revalidatePath('/dashboard/intervenants');
-  redirect('/dashboard/intervenants');
+  revalidatePath('/dashboard');
+  redirect('/dashboard');
 }
 
 export async function deleteIntervenants(id: string) {
   const client = await db.connect();
   try {
     await client.query('DELETE FROM intervenants WHERE id = $1', [id]);
-    revalidatePath('/dashboard/intervenants');
+    revalidatePath('/dashboard');
     return { message: 'Deleted Intervenant.' };
   } catch (err) {
     console.error('Database Error: Failed to Delete Intervenant.', err);
