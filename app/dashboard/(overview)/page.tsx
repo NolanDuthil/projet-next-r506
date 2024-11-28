@@ -1,36 +1,20 @@
 "use client"
-import { useEffect, useState } from 'react';
+
+import { Suspense } from 'react';
+import Pagination from '@/app/ui/gestion/pagination';
+import Table from '@/app/ui/gestion/table';
+import { IntervenantsTableSkeleton } from '@/app/ui/skeletons';
 
 export default function Gestion() {
-    const [intervenants, setIntervenants] = useState([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetch('/api/intervenants/get');
-            const result = await response.json();
-            setIntervenants(result);
-            console.log(intervenants);
-        };
-
-        fetchData();
-    }, []);
-
     return (
         <main className="flex min-h-screen flex-col p-6">
             <h1>Gestion des Intervenants :</h1>
-            {intervenants ? (
-                <>
-                    <ul>
-                        {intervenants.map((intervenant) => (
-                            <li className='flex justify-between' key={intervenant.id}>- {intervenant.firstname} {intervenant.name} {intervenant.email} {intervenant.key} {intervenant.creationdate} {intervenant.enddate} {intervenant.availability}</li>
-                        ))}
-                    </ul>
-                </>
-            ) : (
-                <>
-                    <p>Loading...</p>
-                </>
-            )}
+            <Suspense fallback={<IntervenantsTableSkeleton />}>
+                <Table />
+            </Suspense>
+            {/* <div className="mt-5 flex w-full justify-center">
+                <Pagination totalPages={totalPages} />
+            </div> */}
         </main>
     );
 }
