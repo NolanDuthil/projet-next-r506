@@ -1,19 +1,20 @@
 "use client"
 
 import { useEffect, useState } from 'react';
+import { formatDateToLocal } from '@/app/lib/utils';
 
-export default function IntervenantsTable() {
+export default function Table({ query, currentPage }: { query: string, currentPage: number }) {
     const [intervenants, setIntervenants] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch('/api/intervenants/get');
+            const response = await fetch(`/api/intervenants/get?query=${query}&page=${currentPage}`);
             const result = await response.json();
             setIntervenants(result);
         };
 
         fetchData();
-    }, []);
+    }, [query, currentPage]);
 
     if (intervenants.length === 0) {
         return <p>Loading...</p>;
@@ -38,8 +39,8 @@ export default function IntervenantsTable() {
                                 <div className="flex w-full items-center justify-between pt-4">
                                     <div>
                                         <p>{intervenant.key}</p>
-                                        <p>{intervenant.creationdate}</p>
-                                        <p>{intervenant.enddate}</p>
+                                        <p>{formatDateToLocal(intervenant.creationdate)}</p>
+                                        <p>{formatDateToLocal(intervenant.enddate)}</p>
                                         <p>{JSON.stringify(intervenant.availability)}</p>
                                     </div>
                                 </div>
@@ -91,10 +92,10 @@ export default function IntervenantsTable() {
                                         {intervenant.key}
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-3">
-                                        {intervenant.creationdate}
+                                        {formatDateToLocal(intervenant.creationdate)}
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-3">
-                                        {intervenant.enddate}
+                                        {formatDateToLocal(intervenant.enddate)}
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-3">
                                         {JSON.stringify(intervenant.availability)}
