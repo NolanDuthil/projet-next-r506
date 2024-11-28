@@ -70,6 +70,15 @@ export async function createIntervenants(prevState: State, formData: FormData) {
 
   const client = await db.connect();
   try {
+    // Check if email already exists
+    const emailCheck = await client.query('SELECT id FROM intervenants WHERE email = $1', [email]);
+    if (emailCheck.rows.length > 0) {
+      return {
+        errors: { email: ['Email already exists.'] },
+        message: 'Email already exists. Failed to Create Intervenant.',
+      };
+    }
+
     await client.query(
       'INSERT INTO intervenants (email, firstname, lastname, key, creationdate, enddate, availability) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       [email, firstname, lastname, key, creationdate, enddate, availability]
@@ -83,8 +92,8 @@ export async function createIntervenants(prevState: State, formData: FormData) {
     client.release();
   }
 
-  revalidatePath('/dashboard');
-  redirect('/dashboard');
+  revalidatePath('/dashboard/intervenants');
+  redirect('/dashboard/intervenants');
 }
 
 export async function updateIntervenants(
@@ -122,15 +131,15 @@ export async function updateIntervenants(
     client.release();
   }
 
-  revalidatePath('/dashboard');
-  redirect('/dashboard');
+  revalidatePath('/dashboard/intervenants');
+  redirect('/dashboard/intervenants');
 }
 
 export async function deleteIntervenants(id: string) {
   const client = await db.connect();
   try {
     await client.query('DELETE FROM intervenants WHERE id = $1', [id]);
-    revalidatePath('/dashboard/');
+    revalidatePath('/dashboard/intervenants');
     return { message: 'Deleted Intervenant.' };
   } catch (err) {
     console.error('Database Error: Failed to Delete Intervenant.', err);
