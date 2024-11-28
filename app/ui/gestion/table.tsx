@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { formatDateToLocal } from '@/app/lib/utils';
+import { UpdateIntervenants, DeleteIntervenants } from '@/app/ui/gestion/buttons';
 
 export default function Table({ query, currentPage }: { query: string, currentPage: number }) {
     const [intervenants, setIntervenants] = useState([]);
@@ -71,6 +72,9 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                 <th scope="col" className="px-3 py-5 font-medium">
                                     Availability
                                 </th>
+                                <th scope="col" className="relative py-3 pl-6 pr-3">
+                                    <span className="sr-only">Edit</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white">
@@ -99,6 +103,12 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-3">
                                         {JSON.stringify(intervenant.availability)}
+                                    </td>
+                                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                                        <div className="flex justify-end gap-3">
+                                            <UpdateIntervenants id={intervenant.id} />
+                                            <DeleteIntervenants id={intervenant.id} />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
