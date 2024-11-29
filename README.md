@@ -1,7 +1,16 @@
-## Livrable 22-11-2024
+# Livrable 29-11-2024
+
+- Liste des Intervenants
+- Suppresion des Intervenants
+- Ajout des Intervenants
+- Ajout de la table users (Administrateur)
+
+
+# Livrable 22-11-2024
 
 - Docker
-- Création de la table user
+- Création de la table intervenants
+
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
