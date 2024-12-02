@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <EditForm intervenant={intervenant} />
+      <EditForm intervenants={intervenant} />
     </main>
   );
 }

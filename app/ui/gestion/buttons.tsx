@@ -25,15 +25,17 @@ export function UpdateIntervenants({ id }: { id: string }) {
   );
 }
 
-export function DeleteIntervenants({ id }: { id: string }) {
+export function DeleteIntervenants({ id, onDelete }: { id: string, onDelete: () => void }) {
   const deleteIntervenantsWithId = deleteIntervenants.bind(null, id);
+  const handleDelete = async () => {
+    await deleteIntervenantsWithId(id);
+    onDelete();
+  }
  
   return (
-    <form action={deleteIntervenantsWithId}>
-      <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
+      <button onClick={handleDelete} type="submit" className="rounded-md border p-2 hover:bg-gray-100">
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-4" />
       </button>
-    </form>
   );
 }

@@ -3,10 +3,24 @@ import db from '@/app/lib/db';
 const ITEMS_PER_PAGE = 5;
 
 // Fonction pour récupérer les intervenants
-export async function getIntervenants() {
+export async function fetchIntervenants() {
   const client = await db.connect();
   try {
     const result = await client.query('SELECT * FROM intervenants');
+    return result.rows;
+  } catch (err) {
+    console.error('Erreur lors de la récupération des intervenants', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Fonction pour récupérer les intervenants
+export async function fetchIntervenantsById(id: string) {
+  const client = await db.connect();
+  try {
+    const result = await client.query('SELECT * FROM intervenants WHERE id = $1', [id]);
     return result.rows;
   } catch (err) {
     console.error('Erreur lors de la récupération des intervenants', err);

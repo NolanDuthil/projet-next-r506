@@ -19,6 +19,12 @@ export default function Table({ query, currentPage }: { query: string, currentPa
         fetchData();
     }, [query, currentPage]);
 
+    const refreshData = async () => {
+        const response = await fetch(`/api/intervenants/get?query=${query}&page=${currentPage}`);
+        const result = await response.json();
+        setIntervenants(result);
+    }
+
     if (intervenants.length === 0) {
         return <p>Loading...</p>;
     }
@@ -113,7 +119,7 @@ export default function Table({ query, currentPage }: { query: string, currentPa
                                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                                         <div className="flex justify-end gap-3">
                                             <UpdateIntervenants id={intervenant.id} />
-                                            <DeleteIntervenants id={intervenant.id} />
+                                            <DeleteIntervenants id={intervenant.id} onDelete={refreshData} />
                                         </div>
                                     </td>
                                 </tr>

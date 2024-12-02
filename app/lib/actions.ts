@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import db from '@/app/lib/db';
+import { UpdateIntervenants } from '../ui/gestion/buttons';
 
 export type State = {
   errors?: {
@@ -14,7 +15,7 @@ export type State = {
   message?: string | null;
 };
 
-const validateFields = (fields: { email: any; firstname: any; lastname: any; enddate: any }) => {
+const validateFields = (fields: { email: any; firstname: any; lastname: any; enddate: any }, checkEndDate = true) => {
   const errors: State['errors'] = {};
 
   if (!fields.email) {
@@ -29,7 +30,7 @@ const validateFields = (fields: { email: any; firstname: any; lastname: any; end
     errors.lastname = ['Please enter a lastname.'];
   }
 
-  if (!fields.enddate) {
+  if (checkEndDate && !fields.enddate) {
     errors.enddate = ['Please enter an end date.'];
   }
 
@@ -56,7 +57,7 @@ export async function createIntervenants(prevState: State, formData: FormData) {
     lastname: formData.get('lastname'),
   };
 
-  const errors = validateFields(fields);
+  const errors = validateFields(fields, false);
 
   if (Object.keys(errors).length > 0) {
     return {
@@ -68,9 +69,9 @@ export async function createIntervenants(prevState: State, formData: FormData) {
   const { email, firstname, lastname } = fields;
 
   // Generate additional fields
-  const key = generateKey(); // Implement this function to generate a unique key
+  const key = generateKey(); // Use uuid to generate a unique key
   const creationdate = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
-  const enddate = new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString().split('T')[0]; // Two months from now
+  const enddate = new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString().split('T')[0]; // Deux mois à partir de maintenant
   const availability = {}; // Default empty JSON object
 
   const client = await db.connect();
@@ -101,33 +102,76 @@ export async function createIntervenants(prevState: State, formData: FormData) {
   redirect('/dashboard');
 }
 
+// export async function updateIntervenants( formData: FormData, prevState: State) {
+//   const fields = {
+//     email: formData.get('email'),
+//     firstname: formData.get('firstname'),
+//     lastname: formData.get('lastname'),
+//     enddate : formData.get('enddate'),
+//     id : formData.get('id'),
+//   };
+
+//   const errors = validateFields(fields);
+
+//   if (Object.keys(errors).length > 0) {
+//     return {
+//       errors,
+//       message: 'Missing Fields. Failed to Update Intervenant.',
+//     };
+//   }
+
+//   const { email, firstname, lastname, enddate, id } = fields;
+
+//   const client = await db.connect();
+//   try {
+//     await client.query(
+//       'UPDATE intervenants SET email = $1, firstname = $2, lastname = $3, enddate = $4 WHERE id = $5',
+//       [email, firstname, lastname, enddate, id]
+//     );
+//   } catch (err) {
+//     console.error('Database Error: Failed to Update Intervenant.', err);
+//     return { message: 'Database Error: Failed to Update Intervenant.' };
+//   } finally {
+//     client.release();
+//   }
+
+//   revalidatePath('/dashboard');
+//   redirect('/dashboard');
+// }
+
 export async function updateIntervenants(
-  formData: FormData,
+  id: string,
   prevState: State,
+  formData: FormData,
 ) {
-  const fields = {
+  if (!formData) {
+    return {
+      errors: { formData: ['Form data is missing'] },
+      message: 'Form data is missing. Failed to Update Intervenant.',
+    };
+  }
+
+  const validatedFields = UpdateIntervenants.safeParse({
     email: formData.get('email'),
     firstname: formData.get('firstname'),
     lastname: formData.get('lastname'),
-    enddate: formData.get('enddate'),
-  };
+    enddate : formData.get('enddate'),
+  });
 
-  const errors = validateFields(fields);
-
-  if (Object.keys(errors).length > 0) {
+  if (!validatedFields.success) {
     return {
-      errors,
+      errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Update Intervenant.',
     };
   }
 
-  const { email, firstname, lastname, enddate } = fields;
+  const { email, firstname, lastname, enddate } = validatedFields.data;
 
   const client = await db.connect();
   try {
     await client.query(
-      'UPDATE intervenants SET email = $1, firstname = $2, lastname = $3, enddate = $4 WHERE id = $5',
-      [email, firstname, lastname, enddate, formData.get('id')]
+      'UPDATE intervenants SET email = ${email}, firstname = ${firstname}, lastname = ${lastname}, enddate = ${enddate} WHERE id = ${id}',
+      [email, firstname, lastname, enddate, id]
     );
   } catch (err) {
     console.error('Database Error: Failed to Update Intervenant.', err);
@@ -144,7 +188,6 @@ export async function deleteIntervenants(id: string) {
   const client = await db.connect();
   try {
     await client.query('DELETE FROM intervenants WHERE id = $1', [id]);
-    revalidatePath('/dashboard');
     return { message: 'Deleted Intervenant.' };
   } catch (err) {
     console.error('Database Error: Failed to Delete Intervenant.', err);
