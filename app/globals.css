@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --redunilim: 356 78% 40%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --redunilim: 356 78% 40%;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
