@@ -1,11 +1,7 @@
 // FILE: app/availability/page.tsx
 
-import { validateKey } from '@/app/lib/utils';
+import { validateKey } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
-
-type Props = {
-  message: string;
-};
 
 const AvailabilityPage = async ({ searchParams }: { searchParams: { key?: string } }) => {
   const key = searchParams.key;
@@ -17,6 +13,9 @@ const AvailabilityPage = async ({ searchParams }: { searchParams: { key?: string
   const { valid, intervenant, message } = await validateKey(key);
 
   if (!valid) {
+    if (message === 'Clé inconnue') {
+      notFound();
+    }
     return <div>{message}</div>;
   }
 

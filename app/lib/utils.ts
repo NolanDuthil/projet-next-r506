@@ -46,29 +46,3 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     totalPages,
   ];
 };
-
-export const validateKey = async (key: string) => {
-  const client = await db.connect();
-  try {
-    const result = await client.query(
-      'SELECT * FROM intervenants WHERE key = $1',
-      [key]
-    );
-    if (result.rows.length === 0) {
-      return { valid: false, message: 'Clé inconnue' };
-    }
-
-    const intervenant = result.rows[0];
-    const currentDate = new Date().toISOString().split('T')[0];
-    if (intervenant.enddate < currentDate) {
-      return { valid: false, message: 'Clé expirée' };
-    }
-
-    return { valid: true, intervenant };
-  } catch (err) {
-    console.error('Erreur lors de la validation de la clé', err);
-    throw err;
-  } finally {
-    client.release();
-  }
-};
