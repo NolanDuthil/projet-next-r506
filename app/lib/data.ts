@@ -58,8 +58,7 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
-// Fonction pour récupérer les disponibilités d'un intervenant
-export async function fetchIntervenantAvailability(intervenantId: number) {
+export const fetchIntervenantAvailability = async (intervenantId: number) => {
   const client = await db.connect();
   try {
     const result = await client.query(
@@ -86,7 +85,7 @@ export async function fetchIntervenantAvailability(intervenantId: number) {
   } finally {
     client.release();
   }
-}
+};
 
 export const validateKey = async (key: string) => {
   const client = await db.connect();
