@@ -58,6 +58,36 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
+// Fonction pour récupérer les disponibilités d'un intervenant
+export async function fetchIntervenantAvailability(intervenantId: number) {
+  const client = await db.connect();
+  try {
+    const result = await client.query(
+      'SELECT availability FROM intervenants WHERE intervenant_id = $1',
+      [intervenantId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('Intervenant non trouvé');
+    }
+
+    const availability = result.rows[0].availability;
+
+    // Supposons que la colonne availability contient un tableau d'objets JSON
+    return availability.map((slot: any) => ({
+      title: 'Disponible',
+      start: slot.start_time,
+      end: slot.end_time,
+      color: 'green'
+    }));
+  } catch (err) {
+    console.error('Erreur lors de la récupération des disponibilités', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export const validateKey = async (key: string) => {
   const client = await db.connect();
   try {

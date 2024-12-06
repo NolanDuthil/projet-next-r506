@@ -1,7 +1,10 @@
 // FILE: app/availability/page.tsx
 
-import { validateKey } from '@/app/lib/data';
+import { validateKey, fetchIntervenantAvailability } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 const AvailabilityPage = async ({ searchParams }: { searchParams: { key?: string } }) => {
   const key = searchParams.key;
@@ -19,7 +22,23 @@ const AvailabilityPage = async ({ searchParams }: { searchParams: { key?: string
     return <div>{message}</div>;
   }
 
-  return <div>Bonjour {intervenant.firstname} {intervenant.lastname}</div>;
+  const availability = await fetchIntervenantAvailability(intervenant.id);
+
+  return (
+    <div>
+      <h1>Bonjour {intervenant.firstname} {intervenant.lastname}</h1>
+      <FullCalendar
+        plugins={[timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        events={availability}
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'timeGridWeek,timeGridDay'
+        }}
+      />
+    </div>
+  );
 };
 
 export default AvailabilityPage;
