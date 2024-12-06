@@ -18,7 +18,7 @@ export default function Pagination({ currentPage, totalPages }: { currentPage: n
             ) : (
               <Link
                 href={`?page=${page}`}
-                className={`px-3 py-2 border ${page === currentPage ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 bg-white text-gray-500'}`}
+                className={`px-3 py-2 border ${page === currentPage ? 'border-redunilim bg-redunilim text-white' : 'border-gray-300 bg-white text-gray-500'}`}
               >
                 {page}
               </Link>
