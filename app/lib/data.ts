@@ -115,3 +115,39 @@ export const validateKey = async (key: string) => {
   }
 };
 
+export const fetchIntervenantAvailabilityByKey = async (key: string, intervenantId: number) => {
+  const client = await db.connect();
+  try {
+    const keyResult = await client.query(
+      'SELECT * FROM intervenants WHERE key = $1',
+      [key]
+    );
+    if (keyResult.rows.length === 0) {
+      throw new Error('Clé inconnue');
+    }
+
+    const availabilityResult = await client.query(
+      'SELECT availability FROM intervenants WHERE intervenant_id = $1',
+      [intervenantId]
+    );
+
+    if (availabilityResult.rows.length === 0) {
+      throw new Error('Intervenant non trouvé');
+    }
+
+    const availability = availabilityResult.rows[0].availability;
+
+    return availability.map((slot: any) => ({
+      title: 'Disponible',
+      start: slot.start_time,
+      end: slot.end_time,
+      color: 'green'
+    }));
+  } catch (err) {
+    console.error('Erreur lors de la récupération des disponibilités', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
