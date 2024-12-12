@@ -32,7 +32,6 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/webpack": "^5.28.5",
     "eslint": "^8",
     "eslint-config-next": "15.1.0",
     "postcss": "^8",

@@ -12,7 +12,7 @@ export default function Table({ query, currentPage, itemsPerPage }: { query: str
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch(`/api/intervenants/get?query=${query}&page=${currentPage}&limit=${itemsPerPage}`);
+            const response = await fetch(`/api/intervenants/fetchIntervenants?query=${query}&page=${currentPage}&limit=${itemsPerPage}`);
             const result = await response.json();
             if (Array.isArray(result)) {
                 setIntervenants(result);
