@@ -19,7 +19,7 @@ export default function Gestion() {
 
     const refreshData = async () => {
         // Fetch the total number of pages from the API or calculate it based on the data
-        const response = await fetch(`/api/intervenants/fetchPagination?query=${query}`);
+        const response = await fetch(`/api/intervenants/totalPages?query=${query}`);
         const result = await response.json();
         setTotalPages(result.totalPages);
         setRefreshKey(prevKey => prevKey + 1); // Increment refresh key to force re-render

@@ -58,43 +58,34 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
-// Fonction pour récupérer les disponibilités d'un intervenant par son identifiant
-export async function fetchAvailabilityByIntervenantId(intervenantId: string) {
+export const fetchIntervenantAvailability = async (intervenantId: number) => {
   const client = await db.connect();
   try {
     const result = await client.query(
-      'SELECT * FROM availability WHERE intervenant_id = $1',
+      'SELECT availability FROM intervenants WHERE intervenant_id = $1',
       [intervenantId]
     );
-    const availabilityData = result.rows[0]?.availability;
-    if (!availabilityData) {
-      return [];
+
+    if (result.rows.length === 0) {
+      throw new Error('Intervenant non trouvé');
     }
 
-    const availability = JSON.parse(availabilityData);
-    const events = [];
+    const availability = result.rows[0].availability;
 
-    availability.default.forEach((slot: any) => {
-      const days = slot.days.split(', ');
-      days.forEach((day: string) => {
-        events.push({
-          title: 'Available',
-          daysOfWeek: [day],
-          startTime: slot.from,
-          endTime: slot.to,
-        });
-      });
-    });
-
-    return events;
+    // Supposons que la colonne availability contient un tableau d'objets JSON
+    return availability.map((slot: any) => ({
+      title: 'Disponible',
+      start: slot.start_time,
+      end: slot.end_time,
+      color: 'green'
+    }));
   } catch (err) {
     console.error('Erreur lors de la récupération des disponibilités', err);
-    console.error('Détails de l\'erreur:', err.stack);
     throw err;
   } finally {
     client.release();
   }
-}
+};
 
 export const validateKey = async (key: string) => {
   const client = await db.connect();
@@ -115,7 +106,7 @@ export const validateKey = async (key: string) => {
       return { valid: false, message: 'Clé expirée' };
     }
 
-    return { valid: true, intervenant_id: intervenant.id, intervenant: { firstname: intervenant.firstname, lastname: intervenant.lastname } };
+    return { valid: true, intervenant };
   } catch (err) {
     console.error('Erreur lors de la validation de la clé', err);
     throw err;

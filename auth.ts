@@ -8,10 +8,10 @@ import { Pool } from 'pg';
 
 const db = new Pool({
     user: process.env.POSTGRES_USER,
-    host: "db",
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: parseInt(process.env.DB_PORT || '5432', 10),
+    host: 'postgres_container',
+    database: process.env.POSTGRES_DB,
+    password: process.env.POSTGRES_PASSWORD,
+    port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
 });
  
 async function getUser(email: string): Promise<Users | undefined> {
@@ -28,10 +28,6 @@ export const { auth, signIn, signOut } = NextAuth({
     ...authConfig,
     providers: [
         Credentials({
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
-            },
             async authorize(credentials) {
                 const parsedCredentials = z
                     .object({ email: z.string().email(), password: z.string().min(6) })

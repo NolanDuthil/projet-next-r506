@@ -29,11 +29,6 @@ export default function Page() {
             className="flex items-center gap-6 self-start rounded-lg bg-redunilim px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-red-500 md:text-lg">
             <span>Dashboard</span> <ArrowRightIcon className="w-6 md:w-7" />
           </Link>
-          <Link
-            href="/availability"
-            className="flex items-center gap-6 self-start rounded-lg bg-redunilim px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-red-500 md:text-lg">
-            <span>Disponibilité</span> <ArrowRightIcon className="w-6 md:w-7" />
-          </Link>
         </div>
       </div>
     </main>

@@ -1,55 +1,23 @@
-'use client';
+import { validateKey } from '@/app/lib/data';
+import { notFound } from 'next/navigation';
 
-import { useEffect, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import { useSearchParams } from 'next/navigation';
+const AvailabilityPage = async ({ searchParams }: { searchParams: { key?: string } }) => {
+  const key = searchParams.key;
 
-const AvailabilityPage = () => {
-  const searchParams = useSearchParams();
-  const key = searchParams.get('key');
-  const [events, setEvents] = useState([]);
-  const [intervenant, setIntervenant] = useState({ firstname: '', lastname: '' });
+  if (!key || typeof key !== 'string') {
+    notFound();
+  }
 
-  const fetchAvailability = async () => {
-    try {
-      const validateResponse = await fetch(`/api/auth/validateKey?key=${key}`);
-      const validateData = await validateResponse.json();
-      if (!validateData.valid) {
-        alert(validateData.message);
-        return;
-      }
+  const { valid, intervenant, message } = await validateKey(key);
 
-      const availabilityResponse = await fetch(`/api/availability?key=${key}`);
-      const availabilityData = await availabilityResponse.json();
-      if (availabilityData.valid) {
-        setEvents(availabilityData.availability);
-        setIntervenant(availabilityData.intervenant);
-      } else {
-        alert(availabilityData.message);
-      }
-    } catch (error) {
-      console.error('Error fetching availability:', error);
+  if (!valid) {
+    if (message === 'Clé inconnue') {
+      notFound();
     }
-  };
+    return <div>{message}</div>;
+  }
 
-  useEffect(() => {
-    if (key) {
-      fetchAvailability();
-    }
-  }, [key]);
-
-  return (
-    <div>
-      <h2>{intervenant.firstname} {intervenant.lastname}</h2>
-      <h1>Availability Calendar</h1>
-      <FullCalendar
-        plugins={[dayGridPlugin]}
-        initialView="dayGridMonth"
-        events={events}
-      />
-    </div>
-  );
+  return <div>Bonjour {intervenant.firstname} {intervenant.lastname}</div>;
 };
 
 export default AvailabilityPage;
