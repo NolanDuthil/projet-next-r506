@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import db from '@/app/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { signIn } from '@/auth';
+import AuthError  from 'next-auth';
 
 export type State = {
   errors?: {
@@ -186,5 +188,24 @@ export async function regenerateAllKeys() {
     throw err;
   } finally {
     client.release();
+  }
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error;
   }
 }

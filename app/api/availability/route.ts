@@ -1,19 +1,28 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { fetchIntervenantAvailability } from '@/app/lib/data';
+import { NextRequest, NextResponse } from 'next/server';
+import { validateKey, fetchAvailabilityByIntervenantId } from '@/app/lib/data';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { intervenantId } = req.query;
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get('key');
 
-  if (!intervenantId || typeof intervenantId !== 'string') {
-    return res.status(400).json({ message: 'ID intervenant invalide' });
+  if (!key) {
+    console.log('Clé manquante');
+    return NextResponse.json({ message: 'Clé manquante' }, { status: 400 });
   }
 
   try {
-    // Fetch availability using the intervenantId
-    const availability = await fetchIntervenantAvailability(parseInt(intervenantId as string));
-    return res.status(200).json(availability);
+    const validation = await validateKey(key);
+    if (!validation.valid) {
+      console.log('Clé invalide:', validation.message);
+      return NextResponse.json({ message: validation.message }, { status: 401 });
+    }
+
+    const availability = await fetchAvailabilityByIntervenantId(validation.intervenant_id);
+    console.log('Disponibilités récupérées:', availability);
+    return NextResponse.json({ valid: true, availability, intervenant: validation.intervenant }, { status: 200 });
   } catch (error) {
-    console.error('Erreur lors de la récupération des disponibilités', error);
-    return res.status(500).json({ message: 'Erreur lors de la récupération des disponibilités' });
+    console.error('Erreur lors de la récupération des disponibilités:', error);
+    console.error('Détails de l\'erreur:', error.stack);
+    return NextResponse.json({ message: 'Erreur lors de la récupération des disponibilités' }, { status: 500 });
   }
 }
