@@ -6,7 +6,7 @@ import db from '@/app/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import { signIn } from '@/auth';
-import { AuthError } from 'next-auth';
+import AuthError from 'next-auth';
 
 export type State = {
   errors?: {
