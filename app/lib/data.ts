@@ -114,4 +114,3 @@ export const validateKey = async (key: string) => {
     client.release();
   }
 };
-

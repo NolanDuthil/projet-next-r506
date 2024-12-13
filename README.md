@@ -17,3 +17,10 @@
     - Itération 0 : Mise en place de l’environnement de développement
     - Itération 1 : Configuration du projet Next.js
     - Itération 3 : [BDD] Ajouts des intervenants
+
+
+# .env
+    AUTH_SECRET
+
+# clé
+    openssl rand -base64 32
