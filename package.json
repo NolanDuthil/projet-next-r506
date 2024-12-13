@@ -18,6 +18,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "bcrypt": "^5.1.1",
     "clsx": "^2.1.1",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.0.3",
     "next-auth": "^5.0.0-beta.25",
@@ -28,6 +29,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/next-auth": "^3.15.0",
     "@types/node": "^20",
     "@types/pg": "^8.11.10",
     "@types/react": "^18.3.16",
