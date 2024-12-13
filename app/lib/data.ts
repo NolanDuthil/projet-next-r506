@@ -33,31 +33,6 @@ export async function fetchIntervenantById(id: string) {
   }
 }
 
-// Fonction pour la connexion des utilisateurs
-export async function loginUser(email: string, password: string) {
-  const client = await db.connect();
-  try {
-    const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) {
-      throw new Error('Invalid email or password');
-    }
-
-    const user = result.rows[0];
-    const isValid = await bcrypt.compare(password, user.password);
-
-    if (!isValid) {
-      throw new Error('Invalid email or password');
-    }
-
-    return user;
-  } catch (err) {
-    console.error('Erreur lors de la connexion de l\'utilisateur', err);
-    throw err;
-  } finally {
-    client.release();
-  }
-}
-
 export const fetchIntervenantAvailability = async (intervenantId: number) => {
   const client = await db.connect();
   try {
@@ -87,7 +62,7 @@ export const fetchIntervenantAvailability = async (intervenantId: number) => {
   }
 };
 
-export const validateKey = async (key: string) => {
+export const fetchIntervenantByKey = async (key: string) => {
   const client = await db.connect();
   try {
     const result = await client.query(
@@ -114,4 +89,3 @@ export const validateKey = async (key: string) => {
     client.release();
   }
 };
-
