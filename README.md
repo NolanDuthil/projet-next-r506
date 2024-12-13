@@ -1,5 +1,6 @@
 ## 13/12/2024
     - Itération 10 : Protection de l'accès au dashboard d’administration
+    - Itération 12 : Visualisation des disponibilités pour l’intervenant identifié
 
 ## 06/11/2024
     - Itération 7 : Création de la page Gestion des intervenants - édition
