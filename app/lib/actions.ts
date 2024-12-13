@@ -241,3 +241,19 @@ export async function authenticate(
     throw error;
   }
 }
+
+export async function createAvailability(id: number, availability: any) {
+  const client = await db.connect();
+  try {
+    await client.query(
+      'UPDATE intervenants SET availability = $1 WHERE id = $2',
+      [availability, id]
+    );
+    return { message: 'Availability updated successfully.' };
+  } catch (err) {
+    console.error('Database Error: Failed to Update Availability.', err);
+    return { message: 'Database Error: Failed to Update Availability.' };
+  } finally {
+    client.release();
+  }
+}
