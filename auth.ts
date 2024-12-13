@@ -4,15 +4,7 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import type { Users } from '@/app/lib/definitions';
 import bcrypt from 'bcrypt';
-import { Pool } from 'pg';
-
-const db = new Pool({
-    user: process.env.POSTGRES_USER,
-    host: 'postgres_container',
-    database: process.env.POSTGRES_DB,
-    password: process.env.POSTGRES_PASSWORD,
-    port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-});
+import db from '@/app/lib/db';
  
 async function getUser(email: string): Promise<Users | undefined> {
     try {
