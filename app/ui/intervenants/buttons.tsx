@@ -1,6 +1,6 @@
-import { KeyIcon, PencilIcon, PlusIcon, TrashIcon, ArrowPathIcon } from '@/app/ui/icons';
+import { KeyIcon, PencilIcon, PlusIcon, TrashIcon, ArrowPathIcon, DownloadIcon } from '@/app/ui/icons';
 import Link from 'next/link';
-import { deleteIntervenants, createIntervenants, newKeyIntervenants, regenerateAllKeys } from '@/app/lib/actions';
+import { deleteIntervenants, createIntervenants, newKeyIntervenants, regenerateAllKeys, exportIntervenantsAvailability } from '@/app/lib/actions';
 
 export function CreateIntervenants() {
   return (
@@ -61,6 +61,26 @@ export function RegenerateAllKeys({ onRegenerate }: { onRegenerate: () => void }
     <button onClick={handleRegenerateAll} className="flex gap-2 rounded-md border p-2 hover:bg-gray-100">
       <ArrowPathIcon className="w-5" />
       <KeyIcon className='w-5' />
+    </button>
+  );
+}
+
+export function ExportAvailability() {
+  const handleExport = async () => {
+    const data = await exportIntervenantsAvailability();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'intervenants_availability.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <button onClick={handleExport} className="flex gap-2 rounded-md border p-2 hover:bg-gray-100">
+      <DownloadIcon className="w-5" />
+      <span>Export Availability</span>
     </button>
   );
 }

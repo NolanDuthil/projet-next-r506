@@ -7,6 +7,8 @@ export type Intervenants = {
     creationdate: string;
     enddate: string;
     availability: Record<string, any>;
+    workweek: Record<string, any>;
+    last_modified?: string;
 };
 
 export type Users = {

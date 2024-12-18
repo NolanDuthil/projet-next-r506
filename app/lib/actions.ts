@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import { parse } from 'date-fns';
 
 export type State = {
   errors?: {
@@ -215,9 +216,10 @@ export async function updateAvailabilityByKey(key: string, newAvailability: Reco
   const client = await db.connect();
   try {
     const availabilityJson = JSON.stringify(newAvailability); // Convertir en JSON
+    const lastModified = new Date().toISOString(); // Date de dernière modification
     const result = await client.query(
-      'UPDATE intervenants SET availability = $1 WHERE key = $2 RETURNING *',
-      [availabilityJson, key]
+      'UPDATE intervenants SET availability = $1, last_modified = $2 WHERE key = $3 RETURNING *',
+      [availabilityJson, lastModified, key]
     );
 
     if (result.rows.length === 0) {
@@ -227,6 +229,74 @@ export async function updateAvailabilityByKey(key: string, newAvailability: Reco
     return result.rows[0];
   } catch (err) {
     console.error('Erreur lors de la mise à jour des disponibilités', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function checkAvailabilityAndWorkweek(key: string) {
+  const client = await db.connect();
+  try {
+    const result = await client.query('SELECT availability, workweek FROM intervenants WHERE key = $1', [key]);
+    if (result.rows.length === 0) {
+      throw new Error('Intervenant non trouvé');
+    }
+
+    const { availability, workweek } = result.rows[0];
+    const missingWeeks = [];
+    const insufficientHours = [];
+
+    for (const [week, requiredHours] of Object.entries(workweek)) {
+      const weekAvailability = availability[week];
+      if (!weekAvailability) {
+        missingWeeks.push(week);
+      } else {
+        const totalHours = weekAvailability.reduce((sum: number, slot: { from: string, to: string }) => {
+          const from = parse(slot.from, 'HH:mm', new Date());
+          const to = parse(slot.to, 'HH:mm', new Date());
+          return sum + (to.getTime() - from.getTime()) / (1000 * 60 * 60);
+        }, 0);
+
+        if (totalHours < requiredHours) {
+          insufficientHours.push({ week, totalHours, requiredHours });
+        }
+      }
+    }
+
+    return { missingWeeks, insufficientHours };
+  } catch (err) {
+    console.error('Erreur lors de la vérification des disponibilités et des heures de travail', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function exportIntervenantsAvailability() {
+  const client = await db.connect();
+  try {
+    const result = await client.query('SELECT * FROM intervenants');
+    const data = result.rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      firstname: row.firstname,
+      lastname: row.lastname,
+      key: row.key,
+      creationdate: row.creationdate,
+      enddate: row.enddate,
+      availability: row.availability,
+      workweek: row.workweek,
+      last_modified: row.last_modified ? new Date(row.last_modified).toLocaleString("fr-FR", { timeZone: "Europe/Paris" }) : null,
+    }));
+    const exportDate = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" });
+    const exportData = {
+      export_date: exportDate,
+      intervenants: data,
+    };
+    return JSON.stringify(exportData, null, 2);
+  } catch (err) {
+    console.error('Erreur lors de l\'exportation des disponibilités', err);
     throw err;
   } finally {
     client.release();

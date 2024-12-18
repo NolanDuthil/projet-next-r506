@@ -4,8 +4,9 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { startOfYear, eachWeekOfInterval, format, parse, addDays, startOfWeek, addMinutes } from 'date-fns';
+import { Button } from '@/app/ui/button';
 import { updateAvailabilityByKey } from '@/app/lib/actions';
 import {
   Popover,
@@ -13,9 +14,10 @@ import {
   PopoverTrigger,
 } from "@/app/ui/popover";
 import { XMarkIcon, TrashIcon } from '@/app/ui/icons';
+import { v4 as uuidv4 } from 'uuid'; // Importer uuid pour générer des identifiants uniques
 
 function AvailabilityIntoEvents(availability: any) {
-  let events: { title: string; start: string; end: string; url?: string; groupId?: string }[] = [];
+  let events: { id: string; title: string; start: string; end: string; url?: string; groupId?: string }[] = [];
   const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
   const Currentyear = new Date().getFullYear();
@@ -25,13 +27,15 @@ function AvailabilityIntoEvents(availability: any) {
 
   for (const weekStart of allWeeks) {
     const weekNumber = format(weekStart, 'I');
-    if (!availability[`S${weekNumber}`] && availability.default !== null) {
-      availability[`S${weekNumber}`] = availability.default;
+    // Ne remplissez la semaine par défaut que si elle est manquante et que 'default' n'est pas null et itérable
+    if (!availability[`S${weekNumber}`] && Array.isArray(availability.default)) {
+      availability[`S${weekNumber}`] = [...availability.default]; // Créer une copie de 'default'
     }
   }
 
+  // Parcourir les semaines disponibles
   for (const [week, weekAvailability] of Object.entries(availability)) {
-    if (week === 'default') continue;
+    if (week === 'default') continue; // Ne pas traiter 'default'
     const weekStart = allWeeks.find(w => format(w, 'I') === week.replace('S', ''));
     if (!weekStart) continue;
 
@@ -59,6 +63,7 @@ function AvailabilityIntoEvents(availability: any) {
           const startTime = addMinutes(start, from.getHours() * 60 + from.getMinutes());
           const endTime = addMinutes(start, to.getHours() * 60 + to.getMinutes());
           events.push({
+            id: uuidv4(), // Ajouter un identifiant unique
             title: 'Disponible',
             start: startTime.toISOString(),
             end: endTime.toISOString(),
@@ -83,6 +88,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [availability, setAvailability] = useState(initialAvailability); // Ajoutez cette ligne
+  const calendarRef = useRef<any>(null);
 
   const handleWindowResize = () => {
     const { innerWidth } = window;
@@ -120,41 +126,28 @@ export default function Calendar({ availability: initialAvailability, intervenan
     setEvents(transformedEvents);
   }, [availability]);
 
+
   const handleSelect = async (selectInfo: any) => {
-    const start = new Date(selectInfo.start);
-    const end = new Date(selectInfo.end);
-    const day = start.toLocaleDateString("fr-FR", { weekday: "long" });
-    const from = start.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
-    const to = end.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
+    const startDate = new Date(selectInfo.start);
+    const endDate = new Date(selectInfo.end);
+    const weekKey = format(startDate, 'I');
 
-    const weekNumber = format(start, 'I');  // Identifie la semaine à partir de la date sélectionnée
-    const weekKey = `S${weekNumber}`;  // La clé de la semaine (par ex. S51)
-
-    // Crée un objet pour la nouvelle disponibilité
     const newAvailability = {
-      days: day,
-      from: from,
-      to: to
+      days: startDate.toLocaleDateString("fr-FR", { weekday: "long" }),
+      from: startDate.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }),
+      to: endDate.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })
     };
 
-    // On crée une copie des disponibilités existantes
     const updatedAvailability = { ...availability };
-
-    // Si la semaine spécifiée n'existe pas encore dans la disponibilité, on l'initialise comme un tableau vide
-    if (!updatedAvailability[weekKey]) {
-      updatedAvailability[weekKey] = [];
+    if (!updatedAvailability[`S${weekKey}`]) {
+      updatedAvailability[`S${weekKey}`] = [];
     }
+    updatedAvailability[`S${weekKey}`].push(newAvailability);
 
-    // Ajoute la nouvelle disponibilité à la semaine spécifiée
-    updatedAvailability[weekKey].push(newAvailability);
-
-    // Enregistrer les nouvelles disponibilités dans la base de données
     try {
       await updateAvailabilityByKey(intervenantKey, updatedAvailability);
-
-      // Mettre à jour l'état des disponibilités pour déclencher la mise à jour de l'affichage
       setEvents(AvailabilityIntoEvents(updatedAvailability));
-      setAvailability(updatedAvailability); // Ajoutez cette ligne pour mettre à jour l'état
+      setAvailability(updatedAvailability);
     } catch (error) {
       console.error('Erreur lors de la mise à jour des disponibilités', error);
     }
@@ -165,11 +158,40 @@ export default function Calendar({ availability: initialAvailability, intervenan
     setIsPopoverOpen(true);
   };
 
+  const handleDefaut = async () => {
+    const calendarApi = calendarRef.current.getApi();
+    const currentStartDate = addDays(calendarApi.view.currentStart, 1); // Ajoutez un jour pour corriger le décalage
+    const weekNumber = format(currentStartDate, 'I');
+    const updatedAvailability = { ...availability };
+
+    // Supprimer les semaines identiques à default
+    for (const weekKey of Object.keys(updatedAvailability)) {
+      if (weekKey !== 'default' && JSON.stringify(updatedAvailability[weekKey]) === JSON.stringify(updatedAvailability.default)) {
+        delete updatedAvailability[weekKey];
+      }
+    }
+
+    if (updatedAvailability[`S${weekNumber}`]) {
+      updatedAvailability.default = [...updatedAvailability[`S${weekNumber}`]]; // Créer une copie de la semaine actuelle
+    } else {
+      console.error(`La semaine S${weekNumber} n'existe pas dans les disponibilités.`);
+      return;
+    }
+
+    try {
+      await updateAvailabilityByKey(intervenantKey, updatedAvailability);
+      setEvents(AvailabilityIntoEvents(updatedAvailability));
+      setAvailability(updatedAvailability);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des disponibilités', error);
+    }
+  };
+
   const handleDelete = async () => {
     const eventToDelete = selectedEvent.event;
     const weekNumber = format(new Date(eventToDelete.start), 'I');
     const weekKey = `S${weekNumber}`;
-    const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']; // Ajoutez cette ligne
+    const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
     const updatedAvailability = { ...availability };
     if (updatedAvailability[weekKey]) {
@@ -181,8 +203,8 @@ export default function Calendar({ availability: initialAvailability, intervenan
         const slotDay = slot.days.split(', ').map((day: string) => JourSemaine.indexOf(day));
         const eventDay = eventStart.getDay() - 1; // Convertir le jour de l'événement en index (0 pour lundi, 6 pour dimanche)
         return !(slotStart.getHours() === eventStart.getHours() && slotStart.getMinutes() === eventStart.getMinutes() &&
-                 slotEnd.getHours() === eventEnd.getHours() && slotEnd.getMinutes() === eventEnd.getMinutes() &&
-                 slotDay.includes(eventDay));
+          slotEnd.getHours() === eventEnd.getHours() && slotEnd.getMinutes() === eventEnd.getMinutes() &&
+          slotDay.includes(eventDay));
       });
 
       if (updatedAvailability[weekKey].length === 0) {
@@ -193,7 +215,8 @@ export default function Calendar({ availability: initialAvailability, intervenan
     try {
       await updateAvailabilityByKey(intervenantKey, updatedAvailability);
       setEvents(AvailabilityIntoEvents(updatedAvailability));
-      setAvailability(updatedAvailability); // Ajoutez cette ligne pour mettre à jour l'état
+      setAvailability(updatedAvailability);
+      eventToDelete.remove()
       handlePopoverClose();
     } catch (error) {
       console.error('Erreur lors de la suppression de la disponibilité', error);
@@ -205,9 +228,78 @@ export default function Calendar({ availability: initialAvailability, intervenan
     setSelectedEvent(null);
   };
 
+  const handleEventChange = async (changeInfo: any) => {
+    const eventToChange = changeInfo.event;
+    const oldStart = new Date(changeInfo.oldEvent.start);
+    const oldEnd = new Date(changeInfo.oldEvent.end);
+    const oldWeekNumber = format(oldStart, 'I');
+    const oldWeekKey = `S${oldWeekNumber}`;
+    const newStart = new Date(eventToChange.start);
+    const newEnd = new Date(eventToChange.end);
+    const newWeekNumber = format(newStart, 'I');
+    const newWeekKey = `S${newWeekNumber}`;
+    const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+
+    const updatedAvailability = { ...availability };
+
+    // Supprimer l'ancienne disponibilité
+    if (updatedAvailability[oldWeekKey]) {
+      updatedAvailability[oldWeekKey] = updatedAvailability[oldWeekKey].filter((slot: any) => {
+        const slotStart = parse(slot.from, 'HH:mm', new Date());
+        const slotEnd = parse(slot.to, 'HH:mm', new Date());
+        const slotDay = slot.days.split(', ').map((day: string) => JourSemaine.indexOf(day));
+        const eventDay = oldStart.getDay() - 1; // Convertir le jour de l'événement en index (0 pour lundi, 6 pour dimanche)
+        return !(slotStart.getHours() === oldStart.getHours() && slotStart.getMinutes() === oldStart.getMinutes() &&
+          slotEnd.getHours() === oldEnd.getHours() && slotEnd.getMinutes() === oldEnd.getMinutes() &&
+          slotDay.includes(eventDay));
+      });
+
+      if (updatedAvailability[oldWeekKey].length === 0) {
+        delete updatedAvailability[oldWeekKey];
+      }
+    }
+
+    // Ajouter la nouvelle disponibilité
+    const newDay = newStart.toLocaleDateString("fr-FR", { weekday: "long" });
+    const newFrom = newStart.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
+    const newTo = newEnd.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
+
+    const newAvailability = {
+      days: newDay,
+      from: newFrom,
+      to: newTo
+    };
+
+    if (!updatedAvailability[newWeekKey]) {
+      updatedAvailability[newWeekKey] = [];
+    }
+
+    updatedAvailability[newWeekKey].push(newAvailability);
+
+    // Supprimer les semaines identiques à default
+    for (const weekKey of Object.keys(updatedAvailability)) {
+      if (weekKey !== 'default' && JSON.stringify(updatedAvailability[weekKey]) === JSON.stringify(updatedAvailability.default)) {
+        delete updatedAvailability[weekKey];
+      }
+    }
+
+    // Enregistrer les nouvelles disponibilités dans la base de données
+    try {
+      await updateAvailabilityByKey(intervenantKey, updatedAvailability);
+
+      // Mettre à jour l'état des disponibilités pour déclencher la mise à jour de l'affichage
+      setEvents(events.map(event => event.id === eventToChange.id ? { ...event, start: newStart.toISOString(), end: newEnd.toISOString() } : event));
+      setAvailability(updatedAvailability);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des disponibilités', error);
+    }
+  };
+
   return (
     <>
+      <Button onClick={handleDefaut}>Définir cette semaine comme défaut</Button>
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView={calendarView}
         headerToolbar={{
@@ -247,6 +339,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
         }}
         select={handleSelect}
         eventClick={handleEventClick}
+      eventChange={handleEventChange}
       />
       {selectedEvent && selectedEvent.el && (
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -259,12 +352,12 @@ export default function Calendar({ availability: initialAvailability, intervenan
             <div className='flex flex-col gap-2'>
               <div className='flex justify-between items-center'>
                 <h3 className="text-lg">{selectedEvent.event.title}</h3>
-                <button className='border border-redunilim hover:bg-redunilim w-fit h-fit rounded-lg text-redunilim p-1 hover:text-white' onClick={handlePopoverClose}><XMarkIcon className='w-5 h-5'/></button>
+                <button className='border border-redunilim hover:bg-redunilim w-fit h-fit rounded-lg text-redunilim p-1 hover:text-white' onClick={handlePopoverClose}><XMarkIcon className='w-5 h-5' /></button>
               </div>
               <p><b>Début :</b> {new Date(selectedEvent.event.start).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}</p>
               <p><b>Fin :</b> {new Date(selectedEvent.event.end).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}</p>
               <div>
-                <button className='flex items-center border border-redunilim bg-redunilim hover:bg-white w-fit h-fit rounded-lg text-white p-2 hover:text-redunilim' onClick={handleDelete}><TrashIcon className='w-5 h-5'/> Supprimer</button>
+                <button className='flex items-center border border-redunilim bg-redunilim hover:bg-white w-fit h-fit rounded-lg text-white p-2 hover:text-redunilim' onClick={handleDelete}><TrashIcon className='w-5 h-5' /> Supprimer</button>
               </div>
             </div>
           </PopoverContent>
