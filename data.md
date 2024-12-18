@@ -42,4 +42,5 @@ VALUES
 
 
 INSERT INTO users (email, firstname, lastname, password)
+VALUES
 ('user@nextmail.com', 'User', 'Next', '$2b$10$wciirz73qduyU9NY57uw7ugHjUQH.flZ6Z0UvYcHMuLH2lM0AAvFm');

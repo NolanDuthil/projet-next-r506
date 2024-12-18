@@ -172,5 +172,15 @@ function ArrowPathIcon(props: SVGAttributes<SVGElement>) {
   );
 }
 
+function XMarkIcon(props: SVGAttributes<SVGElement>) {
+  return (
+    <svg data-slot="icon" fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
 
-export { gestionIcon, disponibilityIcon, signOutIcon, ExclamationCircleIcon, CheckCircleIcon, SearchIcon, TrashIcon, PencilIcon, PlusIcon, IdentificationIcon, AtSymbolIcon, UserPlusIcon, CheckIcon, ClockIcon, CurrencyDollarIcon, UserCircleIcon, KeyIcon, ArrowPathIcon };
+
+
+
+export { gestionIcon, disponibilityIcon, signOutIcon, ExclamationCircleIcon, CheckCircleIcon, SearchIcon, TrashIcon, PencilIcon, PlusIcon, IdentificationIcon, AtSymbolIcon, UserPlusIcon, CheckIcon, ClockIcon, CurrencyDollarIcon, UserCircleIcon, KeyIcon, ArrowPathIcon, XMarkIcon };

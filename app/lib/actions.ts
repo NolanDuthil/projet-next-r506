@@ -192,37 +192,6 @@ export async function regenerateAllKeys() {
   }
 }
 
-export async function createAdminUser() {
-  const client = await db.connect();
-  try {
-    const email = 'admin1@admin';
-    const firstname = 'admin2';
-    const lastname = 'admin2';
-    const password = 'admin2';
-
-    // Check if email already exists
-    const emailCheck = await client.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (emailCheck.rows.length > 0) {
-      return { message: 'Admin user already exists.' };
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await client.query(
-      'INSERT INTO users (email, firstname, lastname, password) VALUES ($1, $2, $3, $4)',
-      [email, firstname, lastname, hashedPassword]
-    );
-
-    return { message: 'Admin user created successfully.' };
-  } catch (err) {
-    console.error('Database Error: Failed to Create Admin User.', err);
-    return { message: 'Database Error: Failed to Create Admin User.' };
-  } finally {
-    client.release();
-  }
-}
-
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
@@ -242,17 +211,23 @@ export async function authenticate(
   }
 }
 
-export async function createAvailability(id: number, availability: any) {
+export async function updateAvailabilityByKey(key: string, newAvailability: Record<string, any>) {
   const client = await db.connect();
   try {
-    await client.query(
-      'UPDATE intervenants SET availability = $1 WHERE id = $2',
-      [availability, id]
+    const availabilityJson = JSON.stringify(newAvailability); // Convertir en JSON
+    const result = await client.query(
+      'UPDATE intervenants SET availability = $1 WHERE key = $2 RETURNING *',
+      [availabilityJson, key]
     );
-    return { message: 'Availability updated successfully.' };
+
+    if (result.rows.length === 0) {
+      throw new Error('Intervenant non trouvé');
+    }
+
+    return result.rows[0];
   } catch (err) {
-    console.error('Database Error: Failed to Update Availability.', err);
-    return { message: 'Database Error: Failed to Update Availability.' };
+    console.error('Erreur lors de la mise à jour des disponibilités', err);
+    throw err;
   } finally {
     client.release();
   }

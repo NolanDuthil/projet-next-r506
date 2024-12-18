@@ -1,5 +1,10 @@
+## 20/12/2024
+    - Itération 13 : Ajouter une disponibilité
+    - Itération 14 : Supprimer une disponibilité
+
 ## 13/12/2024
     - Itération 10 : Protection de l'accès au dashboard d’administration
+    - Itération 12 : Visualisation des disponibilités pour l’intervenant identifié
 
 ## 06/11/2024
     - Itération 7 : Création de la page Gestion des intervenants - édition
@@ -17,3 +22,10 @@
     - Itération 0 : Mise en place de l’environnement de développement
     - Itération 1 : Configuration du projet Next.js
     - Itération 3 : [BDD] Ajouts des intervenants
+
+
+# .env
+    AUTH_SECRET=your-secret-key
+
+# Generate key
+    openssl rand -base64 32

@@ -1,9 +1,4 @@
 {
-    "Intervenant 1": [{
-        "days": "lundi, mardi, mercredi, jeudi, vendredi",
-        "from": "8:00",
-        "to": "19:30"
-    }],
     "Intervenant 2": {
         "default": [{
             "days": "lundi, mardi, jeudi, vendredi",
