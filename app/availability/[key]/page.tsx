@@ -3,13 +3,7 @@ import { notFound } from 'next/navigation';
 import Calendar from '@/app/ui/calendar';
 import { checkAvailabilityAndWorkweek } from '@/app/lib/actions';
 
-interface PageProps {
-  params: {
-    key: string;
-  };
-}
-
-const AvailabilityPage = async ({ params }: PageProps) => {
+const AvailabilityPage = async ({ params }: { params: { key: string } }) => {
   const key = params.key;
 
   if (!key || typeof key !== 'string') {
