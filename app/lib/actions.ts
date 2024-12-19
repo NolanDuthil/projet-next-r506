@@ -4,10 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import db from '@/app/lib/db';
 import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
-import { parse } from 'date-fns';
 
 export type State = {
   errors?: {
@@ -18,7 +16,7 @@ export type State = {
   message?: string | null;
 };
 
-const validateFields = (fields: { email: any; firstname: any; lastname: any }) => {
+const validateFields = (fields: { email: string | FormDataEntryValue | null; firstname: string | FormDataEntryValue | null; lastname: string | FormDataEntryValue | null }) => {
   const errors: State['errors'] = {};
 
   if (!fields.email) {
@@ -212,7 +210,7 @@ export async function authenticate(
   }
 }
 
-export async function updateAvailabilityByKey(key: string, newAvailability: Record<string, any>) {
+export async function updateAvailabilityByKey(key: string, newAvailability: Record<string, { start_time: string; end_time: string }[]>) {
   const client = await db.connect();
   try {
     const availabilityJson = JSON.stringify(newAvailability); // Convertir en JSON
@@ -235,7 +233,7 @@ export async function updateAvailabilityByKey(key: string, newAvailability: Reco
   }
 }
 
-export async function checkAvailabilityAndWorkweek(key: string) {
+export async function checkAvailabilityAndWorkweek(key: string): Promise<{ missingWeeks: string[], insufficientHours: { week: string, totalHours: number, requiredHours: number }[] }> {
   const client = await db.connect();
   try {
     const result = await client.query(
@@ -298,6 +296,25 @@ export async function exportIntervenantsAvailability() {
     return JSON.stringify(exportData, null, 2);
   } catch (err) {
     console.error('Erreur lors de l\'exportation des disponibilités', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function importWorkloads(workloads: { intervenant: string, workweek: { week: number, hours: number }[] }[]) {
+  const client = await db.connect();
+  try {
+    for (const workload of workloads) {
+      const { intervenant, workweek } = workload;
+      const workweekJson = JSON.stringify(workweek);
+      await client.query(
+        'UPDATE intervenants SET workweek = $1 WHERE email = $2',
+        [workweekJson, intervenant]
+      );
+    }
+  } catch (err) {
+    console.error('Erreur lors de l\'importation des workloads', err);
     throw err;
   } finally {
     client.release();

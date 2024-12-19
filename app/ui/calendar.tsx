@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useEffect, useState, useRef } from 'react';
-import { startOfYear, eachWeekOfInterval, format, parse, addDays, startOfWeek, addMinutes } from 'date-fns';
+import { eachWeekOfInterval, format, parse, addDays, startOfWeek, addMinutes } from 'date-fns';
 import { Button } from '@/app/ui/button';
 import { updateAvailabilityByKey } from '@/app/lib/actions';
 import {
@@ -16,7 +16,7 @@ import {
 import { XMarkIcon, TrashIcon } from '@/app/ui/icons';
 import { v4 as uuidv4 } from 'uuid'; // Importer uuid pour générer des identifiants uniques
 
-function AvailabilityIntoEvents(availability: any) {
+function AvailabilityIntoEvents(availability: Record<string, { days: string; from: string; to: string }[]>) {
   let events: { id: string; title: string; start: string; end: string; url?: string; groupId?: string }[] = [];
   const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
@@ -77,7 +77,7 @@ function AvailabilityIntoEvents(availability: any) {
   return events;
 }
 
-export default function Calendar({ availability: initialAvailability, intervenantKey }: { availability: Record<string, any>, intervenantKey: string }) {
+export default function Calendar({ availability: initialAvailability, intervenantKey }: { availability: Record<string, { days: string; from: string; to: string }[]>, intervenantKey: string }) {
   const [calendarView, setCalendarView] = useState("timeGridWeek");
   const [headerToolbar, setHeaderToolbar] = useState({
     left: "title prev,next today",
@@ -85,10 +85,10 @@ export default function Calendar({ availability: initialAvailability, intervenan
     right: "timeGridDay,timeGridWeek,dayGridMonth",
   });
   const [events, setEvents] = useState<{ title: string; start: string; end: string; url?: string; groupId?: string }[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<{ event: { start: string; end: string; title: string; id: string }; el: HTMLElement } | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [availability, setAvailability] = useState(initialAvailability); // Ajoutez cette ligne
-  const calendarRef = useRef<any>(null);
+  const calendarRef = useRef<FullCalendar>(null);
 
   const handleWindowResize = () => {
     const { innerWidth } = window;
@@ -127,7 +127,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
   }, [availability]);
 
 
-  const handleSelect = async (selectInfo: any) => {
+  const handleSelect = async (selectInfo: { start: Date; end: Date }) => {
     const startDate = new Date(selectInfo.start);
     const endDate = new Date(selectInfo.end);
     const weekKey = format(startDate, 'I');
@@ -153,7 +153,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
     }
   };
 
-  const handleEventClick = (clickInfo: any) => {
+  const handleEventClick = (clickInfo: { event: { start: string; end: string; title: string; id: string }; el: HTMLElement }) => {
     setSelectedEvent(clickInfo);
     setIsPopoverOpen(true);
   };
@@ -188,14 +188,15 @@ export default function Calendar({ availability: initialAvailability, intervenan
   };
 
   const handleDelete = async () => {
-    const eventToDelete = selectedEvent.event;
+    const eventToDelete = selectedEvent?.event;
+    if (!eventToDelete) return;
     const weekNumber = format(new Date(eventToDelete.start), 'I');
     const weekKey = `S${weekNumber}`;
     const JourSemaine = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
     const updatedAvailability = { ...availability };
     if (updatedAvailability[weekKey]) {
-      updatedAvailability[weekKey] = updatedAvailability[weekKey].filter((slot: any) => {
+      updatedAvailability[weekKey] = updatedAvailability[weekKey].filter((slot: { from: string; to: string; days: string }) => {
         const slotStart = parse(slot.from, 'HH:mm', new Date());
         const slotEnd = parse(slot.to, 'HH:mm', new Date());
         const eventStart = new Date(eventToDelete.start);
@@ -228,7 +229,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
     setSelectedEvent(null);
   };
 
-  const handleEventChange = async (changeInfo: any) => {
+  const handleEventChange = async (changeInfo: { event: { start: string; end: string; title: string; id: string }; oldEvent: { start: string; end: string } }) => {
     const eventToChange = changeInfo.event;
     const oldStart = new Date(changeInfo.oldEvent.start);
     const oldEnd = new Date(changeInfo.oldEvent.end);
@@ -244,7 +245,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
 
     // Supprimer l'ancienne disponibilité
     if (updatedAvailability[oldWeekKey]) {
-      updatedAvailability[oldWeekKey] = updatedAvailability[oldWeekKey].filter((slot: any) => {
+      updatedAvailability[oldWeekKey] = updatedAvailability[oldWeekKey].filter((slot: { from: string; to: string; days: string }) => {
         const slotStart = parse(slot.from, 'HH:mm', new Date());
         const slotEnd = parse(slot.to, 'HH:mm', new Date());
         const slotDay = slot.days.split(', ').map((day: string) => JourSemaine.indexOf(day));
@@ -339,7 +340,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
         }}
         select={handleSelect}
         eventClick={handleEventClick}
-      eventChange={handleEventChange}
+        eventChange={handleEventChange}
       />
       {selectedEvent && selectedEvent.el && (
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>

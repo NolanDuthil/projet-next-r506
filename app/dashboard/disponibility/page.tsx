@@ -71,7 +71,7 @@ export default function Disponibility() {
           {insufficientHours.length > 0 && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
               <strong className="font-bold">Attention!</strong>
-              <span className="block sm:inline"> Vous avez saisi moins d'heures que nécessaire pour les semaines suivantes:</span>
+              <span className="block sm:inline"> Vous avez saisi moins d&apos;heures que nécessaire pour les semaines suivantes:</span>
               <ul className="list-disc list-inside">
                 {insufficientHours.map(({ week, totalHours, requiredHours }) => (
                   <li key={week}>Semaine {week}: {totalHours} heures saisies, {requiredHours} heures requises</li>

@@ -1,9 +1,7 @@
 'use client';
 
-import clsx from 'clsx';
 import Link from 'next/link';
 import { generatePagination } from '@/app/lib/utils';
-import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function Pagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
   const pages = generatePagination(currentPage, totalPages);

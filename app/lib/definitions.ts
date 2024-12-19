@@ -6,8 +6,8 @@ export type Intervenants = {
     key: string;
     creationdate: string;
     enddate: string;
-    availability: Record<string, any>;
-    workweek: Record<string, any>;
+    availability: Record<string, { start_time: string; end_time: string }[]>;
+    workweek: Record<string, number>;
     last_modified?: string;
 };
 

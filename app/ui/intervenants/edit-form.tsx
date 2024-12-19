@@ -1,11 +1,10 @@
 "use client";
 
 import { Intervenants } from "@/app/lib/definitions";
-import { CheckIcon, ClockIcon, CurrencyDollarIcon, UserCircleIcon } from "@/app/ui/icons";
+import { ClockIcon, UserCircleIcon } from "@/app/ui/icons";
 import Link from "next/link";
 import { Button } from "@/app/ui/button";
 import { State, updateIntervenants } from "@/app/lib/actions";
-import { useActionState } from "react";
 import { useRouter } from 'next/navigation';
 
 export default function EditIntervenantForm({

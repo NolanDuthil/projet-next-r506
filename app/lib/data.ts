@@ -1,7 +1,6 @@
 'use server';
 
 import db from '@/app/lib/db';
-import bcrypt from 'bcrypt';
 
 // Fonction pour récupérer les intervenants avec pagination
 export async function fetchIntervenants(query: string, page: number, limit: number) {
@@ -50,7 +49,7 @@ export const fetchIntervenantAvailability = async (intervenantId: number) => {
     const availability = result.rows[0].availability;
 
     // Supposons que la colonne availability contient un tableau d'objets JSON
-    return availability.map((slot: any) => ({
+    return availability.map((slot: { start_time: string; end_time: string }) => ({
       title: 'Disponible',
       start: slot.start_time,
       end: slot.end_time,
