@@ -6,7 +6,7 @@ export function CreateIntervenants() {
   return (
     <Link
       href="/dashboard/create"
-      className="flex h-10 items-center rounded-lg bg-redunilim px-4 text-sm font-medium text-white transition-colors hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+      className="flex h-10 items-center rounded-lg bg-redunilim px-4 text-sm font-medium text-white transition-colors hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
     >
       <span className="hidden md:block">Create Intervenants</span>{' '}
       <PlusIcon className="h-5 md:ml-4" />
