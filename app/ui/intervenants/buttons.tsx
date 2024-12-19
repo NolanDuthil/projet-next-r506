@@ -1,4 +1,4 @@
-import { KeyIcon, PencilIcon, PlusIcon, TrashIcon, ArrowPathIcon, DownloadIcon } from '@/app/ui/icons';
+import { KeyIcon, PencilIcon, PlusIcon, TrashIcon, ArrowPathIcon, DownloadIcon, ImportIcon } from '@/app/ui/icons';
 import Link from 'next/link';
 import { deleteIntervenants, createIntervenants, newKeyIntervenants, regenerateAllKeys, exportIntervenantsAvailability } from '@/app/lib/actions';
 
@@ -82,5 +82,29 @@ export function ExportAvailability() {
       <DownloadIcon className="w-5" />
       <span>Export Availability</span>
     </button>
+  );
+}
+
+export function ImportWorkloads({ onImport }: { onImport: () => void }) {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = e.target?.result as string;
+        const workloads = JSON.parse(text);
+        await importWorkloads(workloads);
+        onImport();
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  return (
+    <label className="flex items-center gap-2 rounded-md border p-2 hover:bg-gray-100 cursor-pointer whitespace-nowrap">
+      <ImportIcon className="w-5" />
+      <span>Import</span>
+      <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+    </label>
   );
 }

@@ -8,7 +8,7 @@ import Search from '@/app/ui/search';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { UserPlusIcon } from '@/app/ui/icons';
-import { CreateIntervenants, RegenerateAllKeys, ExportAvailability } from '@/app/ui/intervenants/buttons';
+import { CreateIntervenants, RegenerateAllKeys, ExportAvailability, ImportWorkloads } from '@/app/ui/intervenants/buttons';
 
 export default function Gestion() {
     const [totalPages, setTotalPages] = useState(1);
@@ -37,6 +37,7 @@ export default function Gestion() {
                 <CreateIntervenants />
                 <RegenerateAllKeys onRegenerate={refreshData} />
                 <ExportAvailability />
+                <ImportWorkloads onImport={refreshData} />
             </div>
             <Suspense fallback={<IntervenantsTableSkeleton />}>
                 <Table key={refreshKey} query={query} currentPage={currentPage} itemsPerPage={10} />
