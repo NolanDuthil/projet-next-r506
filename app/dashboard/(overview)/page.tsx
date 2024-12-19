@@ -6,8 +6,6 @@ import Table from '@/app/ui/intervenants/table';
 import { IntervenantsTableSkeleton } from '@/app/ui/skeletons';
 import Search from '@/app/ui/search';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { UserPlusIcon } from '@/app/ui/icons';
 import { CreateIntervenants, RegenerateAllKeys, ExportAvailability, ImportWorkloads } from '@/app/ui/intervenants/buttons';
 
 export default function Gestion() {
@@ -27,7 +25,7 @@ export default function Gestion() {
 
     useEffect(() => {
         refreshData();
-    }, [query]);
+    }, [query, refreshData]);
 
     return (
         <main className="flex min-h-screen flex-col p-6">
