@@ -7,10 +7,6 @@ interface Params {
   key: string;
 }
 
-interface Props {
-  params: Params;
-}
-
 const AvailabilityPage = async ({ params }: { params: Params }) => {
   const key = params.key;
 
