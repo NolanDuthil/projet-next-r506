@@ -2,8 +2,17 @@ import { fetchIntervenantByKey } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 import Calendar from '@/app/ui/calendar';
 import { checkAvailabilityAndWorkweek } from '@/app/lib/actions';
+import { GetServerSideProps } from 'next';
 
-const AvailabilityPage = async ({ params }: { params: { key: string } }) => {
+interface Params {
+  key: string;
+}
+
+interface Props {
+  params: Params;
+}
+
+const AvailabilityPage: React.FC<Props> = async ({ params }) => {
   const key = params.key;
 
   if (!key || typeof key !== 'string') {
@@ -49,6 +58,15 @@ const AvailabilityPage = async ({ params }: { params: { key: string } }) => {
         <Calendar availability={intervenant.availability ?? ''} intervenantKey={intervenant.key} />
     </main>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { params } = context;
+  return {
+    props: {
+      params,
+    },
+  };
 };
 
 export default AvailabilityPage;
