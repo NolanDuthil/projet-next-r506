@@ -11,7 +11,7 @@ interface Props {
   params: Params;
 }
 
-const AvailabilityPage: React.FC<Props> = async ({ params }) => {
+const AvailabilityPage = async ({ params }: { params: Params }) => {
   const key = params.key;
 
   if (!key || typeof key !== 'string') {

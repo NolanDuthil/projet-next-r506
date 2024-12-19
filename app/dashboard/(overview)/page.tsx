@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import Pagination from '@/app/ui/intervenants/pagination';
 import Table from '@/app/ui/intervenants/table';
 import { IntervenantsTableSkeleton } from '@/app/ui/skeletons';
@@ -15,13 +15,13 @@ export default function Gestion() {
     const query = searchParams.get('query') || '';
     const currentPage = Number(searchParams.get('page')) || 1;
 
-    const refreshData = async () => {
+    const refreshData = useCallback(async () => {
         // Fetch the total number of pages from the API or calculate it based on the data
         const response = await fetch(`/api/intervenants/totalPages?query=${query}`);
         const result = await response.json();
         setTotalPages(result.totalPages);
         setRefreshKey(prevKey => prevKey + 1); // Increment refresh key to force re-render
-    };
+    }, [query]);
 
     useEffect(() => {
         refreshData();
