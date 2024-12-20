@@ -25,7 +25,7 @@ export default function Gestion() {
 
     useEffect(() => {
         refreshData();
-    }, [query, refreshData]);
+    }, [query]);
 
     return (
         <main className="flex min-h-screen flex-col p-6">
