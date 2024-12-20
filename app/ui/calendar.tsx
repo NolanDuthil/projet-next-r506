@@ -297,7 +297,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
 
   return (
     <>
-      <Button onClick={handleDefaut}>Définir cette semaine comme défaut</Button>
+      <Button className="my-2" onClick={handleDefaut}>Par défaut</Button>
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -318,7 +318,7 @@ export default function Calendar({ availability: initialAvailability, intervenan
         weekNumbers={true}
         navLinks={true}
         editable={true}
-        eventColor="#b61621"
+        eventColor="#7C06F2"
         selectable={true}
         selectMirror={true}
         dayMaxEvents={true}
